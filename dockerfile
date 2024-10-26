@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-install pdo pdo_sqlite mbstring zip exif pcntl
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer
 
 # Install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
@@ -29,7 +29,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
 COPY . /var/www/html
 
 # Install PHP dependencies
-RUN composer install --optimize-autoloader --no-dev
+RUN composer install --optimize-autoloader --no-dev --verbose
 
 # Install Node dependencies and build assets
 RUN npm install && npm run build
@@ -61,10 +61,10 @@ RUN php artisan view:cache
 RUN touch database/database.sqlite
 
 # Set appropriate permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache \
-    && chmod -R 755 /var/www/html/database
+RUN chmod -R 775 /var/www/html \
+    && chown -R www-data:www-data /var/www/html/storage \
+    && chown -R www-data:www-data /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/database
 
 # Expose port 9000 and start PHP-FPM server
 EXPOSE 9000
